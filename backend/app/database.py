@@ -25,6 +25,9 @@ def ensure_sqlite_columns() -> None:
             ("dorm_latitude", "ALTER TABLE users ADD COLUMN dorm_latitude FLOAT"),
             ("dorm_longitude", "ALTER TABLE users ADD COLUMN dorm_longitude FLOAT"),
         ],
+        "checkins": [
+            ("note", "ALTER TABLE checkins ADD COLUMN note VARCHAR(200)"),
+        ],
     }
     with engine.connect() as conn:
         for table, columns in migrations.items():

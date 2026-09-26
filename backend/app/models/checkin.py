@@ -23,6 +23,7 @@ class Checkin(Base):
     ai_flags: Mapped[str] = mapped_column(String(500), default="")  # JSON 数组：命中规则说明
     points_awarded: Mapped[int] = mapped_column(Integer, default=0)  # 审核通过后入账积分
     review_reason: Mapped[str | None] = mapped_column(String(200), default=None)  # 教师驳回原因
+    note: Mapped[str | None] = mapped_column(String(200), default=None)  # 学生备注（选填）
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, index=True)
 

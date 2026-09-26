@@ -128,6 +128,7 @@ class CheckinOut(BaseModel):
     ai_flags: list[str] = []
     points_awarded: int
     review_reason: str | None = None
+    note: str | None = None
     created_at: datetime
 
 

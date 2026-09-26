@@ -71,3 +71,43 @@ export function getCarbonStats(params) {
 export function getCarbonFactors() {
   return api.get('/carbon/factors')
 }
+
+/** 打卡任务类型与基础积分 */
+export function getCheckinTasks() {
+  return api.get('/checkins/tasks')
+}
+
+/** 提交打卡（FormData：task_type / latitude / longitude / note / photo） */
+export function createCheckin(formData) {
+  return api.post('/checkins', formData, { timeout: 30000 })
+}
+
+/** 我的打卡记录 */
+export function getMyCheckins() {
+  return api.get('/checkins/me')
+}
+
+/** 我的积分与连续打卡天数 */
+export function getMyCheckinSummary() {
+  return api.get('/checkins/me/summary')
+}
+
+/** 我的积分流水 */
+export function getMyPoints() {
+  return api.get('/points/me')
+}
+
+/** 全部打卡记录（教师）：status=pending|approved|rejected / ai_flagged / user_id */
+export function getAllCheckins(params) {
+  return api.get('/checkins', { params })
+}
+
+/** 审核通过打卡（教师）：积分入账 + 连续奖励 */
+export function approveCheckin(id) {
+  return api.post(`/checkins/${id}/approve`)
+}
+
+/** 审核驳回打卡（教师），reason 选填 */
+export function rejectCheckin(id, reason) {
+  return api.post(`/checkins/${id}/reject`, { reason: reason || null })
+}

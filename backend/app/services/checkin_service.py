@@ -72,6 +72,7 @@ def create_checkin(
     latitude: float | None,
     longitude: float | None,
     photo_path: str | None,
+    note: str | None = None,
 ) -> tuple[Checkin, list[str]]:
     """创建打卡记录（待审核），同时执行防作弊检查。"""
     flags = run_anti_cheat(db, user, task_type, latitude, longitude)
@@ -81,6 +82,7 @@ def create_checkin(
         photo_path=photo_path,
         latitude=latitude,
         longitude=longitude,
+        note=note,
         ai_flagged=bool(flags),
         ai_flags=json.dumps(flags, ensure_ascii=False),
     )
@@ -116,11 +118,24 @@ def approve_checkin(db: Session, checkin: Checkin) -> dict:
     base = TASK_POINTS.get(checkin.task_type, 0)
     checkin.points_awarded = base
     point_service.credit(db, checkin.user_id, base, "checkin", checkin.id, f"打卡通过：{checkin.task_type}")
-    # 会话配置了 autoflush=False，先落库让下面的连续天数查询能看到本条记录
+    # 会话配置了 autoflush=False，先落库让下面的查询能看到本条记录
     db.flush()
 
     streak = calc_streak(db, checkin.user_id, checkin.created_at.date())
-    bonus = STREAK_BONUS.get(streak, 0)
+    # 里程碑奖励按天发放：同一天已审核过其它打卡时不再重复发
+    date_str = checkin.created_at.date().isoformat()
+    first_of_day = (
+        db.scalar(
+            select(Checkin.id).where(
+                Checkin.user_id == checkin.user_id,
+                Checkin.status == "approved",
+                func.date(Checkin.created_at) == date_str,
+                Checkin.id != checkin.id,
+            ).limit(1)
+        )
+        is None
+    )
+    bonus = STREAK_BONUS.get(streak, 0) if first_of_day else 0
     if bonus:
         point_service.credit(
             db, checkin.user_id, bonus, "streak_bonus", checkin.id, f"连续打卡 {streak} 天奖励"

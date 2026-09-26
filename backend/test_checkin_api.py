@@ -42,12 +42,14 @@ def h(token):
 stok = login("张三", "123456")
 ttok = login("李老师", "123456")
 
-# 1 正常打卡（宿舍附近，无照片）
+# 1 正常打卡（宿舍附近，无照片，带备注）
 r = requests.post(f"{BASE}/api/checkins", headers=h(stok),
-                  data={"task_type": "光盘", "latitude": "30.6605", "longitude": "104.0658"})
+                  data={"task_type": "光盘", "latitude": "30.6605", "longitude": "104.0658",
+                        "note": "今天在二食堂吃的，吃得干干净净"})
 d = r.json()
-print("1 normal:", r.status_code, d["status"], "flagged=", d["ai_flagged"], d["ai_flags"])
+print("1 normal:", r.status_code, d["status"], "flagged=", d["ai_flagged"], "note=", d["note"])
 assert r.status_code == 201 and d["ai_flagged"] is False and d["status"] == "pending"
+assert d["note"] == "今天在二食堂吃的，吃得干干净净"
 normal_id = d["id"]
 
 # 2 同类型间隔 < 5 分钟 → 标记
@@ -65,7 +67,7 @@ print("3 drift flagged:", d["ai_flagged"], d["ai_flags"])
 assert d["ai_flagged"] is True and any("km" in f for f in d["ai_flags"])
 
 # 4 照片上传打卡
-with open("_test_photo.png", "rb") as f:
+with open("tests/cup.png", "rb") as f:
     r = requests.post(f"{BASE}/api/checkins", headers=h(stok),
                       data={"task_type": "自带水杯", "latitude": "30.6602", "longitude": "104.0652"},
                       files={"photo": ("cup.png", f, "image/png")})
@@ -96,23 +98,33 @@ d = r.json()
 print("8 approve:", d["checkin"]["points_awarded"], "pts, streak", d["streak"], ", bonus", d["bonus"])
 assert d["checkin"]["points_awarded"] == 5 and d["streak"] == 3 and d["bonus"] == 5
 
+# 8b 通过第二条当天打卡：积分入账但不重复发放里程碑奖励
+cup_id = None
+for row in requests.get(f"{BASE}/api/checkins", headers=h(ttok), params={"status": "pending"}).json():
+    if row["photo_path"]:
+        cup_id = row["id"]
+r = requests.post(f"{BASE}/api/checkins/{cup_id}/approve", headers=h(ttok))
+d = r.json()
+print("8b approve same-day:", d["checkin"]["points_awarded"], "pts, bonus", d["bonus"])
+assert d["checkin"]["points_awarded"] == 3 and d["bonus"] == 0
+
 # 9 驳回重复打卡
 r = requests.post(f"{BASE}/api/checkins/{dup_id}/reject", headers=h(ttok), json={"reason": "间隔不足 5 分钟"})
 d = r.json()
 print("9 reject:", d["status"], d["review_reason"])
 assert d["status"] == "rejected" and d["review_reason"]
 
-# 10 学生汇总（审核后：积分 10，连续 3 天）
+# 10 学生汇总（审核后：积分 5+5+3=13，连续 3 天）
 r = requests.get(f"{BASE}/api/checkins/me/summary", headers=h(stok))
 d = r.json()
 print("10 summary after:", d)
-assert d == {"total_points": 10, "streak_days": 3}
+assert d == {"total_points": 13, "streak_days": 3}
 
 # 11 学生积分流水
 r = requests.get(f"{BASE}/api/points/me", headers=h(stok))
 d = r.json()
 print("11 points/me:", d["total_points"], [(t["reason"], t["points"]) for t in d["transactions"]])
-assert d["total_points"] == 10 and {t["reason"] for t in d["transactions"]} == {"checkin", "streak_bonus"}
+assert d["total_points"] == 13 and len(d["transactions"]) == 3
 
 # 12 学生访问教师接口 → 403
 r = requests.get(f"{BASE}/api/checkins", headers=h(stok))
@@ -134,6 +146,6 @@ uid = requests.get(f"{BASE}/api/checkins", headers=h(ttok), params={"ai_flagged"
 r = requests.get(f"{BASE}/api/points/transactions", headers=h(ttok), params={"user_id": uid})
 d = r.json()
 print("15 teacher view points:", d["total_points"], len(d["transactions"]))
-assert d["total_points"] == 10
+assert d["total_points"] == 13
 
 print("\nALL 15 CHECKS PASSED")

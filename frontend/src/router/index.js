@@ -2,7 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import StudentHome from '../views/student/StudentHome.vue'
+import StudentCheckin from '../views/student/StudentCheckin.vue'
 import TeacherDashboard from '../views/teacher/TeacherDashboard.vue'
+import TeacherCheckins from '../views/teacher/TeacherCheckins.vue'
 import CarbonAccounting from '../views/teacher/CarbonAccounting.vue'
 
 const router = createRouter({
@@ -21,9 +23,21 @@ const router = createRouter({
       meta: { role: 'student' },
     },
     {
+      path: '/student/checkin',
+      name: 'student-checkin',
+      component: StudentCheckin,
+      meta: { role: 'student' },
+    },
+    {
       path: '/teacher/dashboard',
       name: 'teacher-dashboard',
       component: TeacherDashboard,
+      meta: { role: 'teacher' },
+    },
+    {
+      path: '/teacher/checkins',
+      name: 'teacher-checkins',
+      component: TeacherCheckins,
       meta: { role: 'teacher' },
     },
     {

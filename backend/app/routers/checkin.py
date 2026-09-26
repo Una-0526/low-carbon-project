@@ -43,6 +43,7 @@ def _to_out(checkin: Checkin) -> CheckinOut:
         ai_flags=json.loads(checkin.ai_flags) if checkin.ai_flags else [],
         points_awarded=checkin.points_awarded,
         review_reason=checkin.review_reason,
+        note=checkin.note,
         created_at=checkin.created_at,
     )
 
@@ -81,17 +82,22 @@ async def create_checkin(
     task_type: str = Form(...),
     latitude: float | None = Form(default=None),
     longitude: float | None = Form(default=None),
+    note: str | None = Form(default=None),
     photo: UploadFile | None = File(default=None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """提交打卡：可带定位坐标与照片。服务端自动执行 AI 防作弊检查并打标。"""
+    """提交打卡：可带定位坐标、备注与照片。服务端自动执行 AI 防作弊检查并打标。"""
     if task_type not in checkin_service.TASK_POINTS:
         raise HTTPException(status_code=400, detail=f"无效任务类型，可选：{'/'.join(checkin_service.TASK_POINTS)}")
     if (latitude is None) != (longitude is None):
         raise HTTPException(status_code=400, detail="定位需同时提供经纬度")
+    if note and len(note) > 200:
+        raise HTTPException(status_code=400, detail="备注不能超过 200 字")
     photo_path = _save_photo(photo) if photo else None
-    checkin, _flags = checkin_service.create_checkin(db, user, task_type, latitude, longitude, photo_path)
+    checkin, _flags = checkin_service.create_checkin(
+        db, user, task_type, latitude, longitude, photo_path, note=note
+    )
     return _to_out(checkin)
 
 

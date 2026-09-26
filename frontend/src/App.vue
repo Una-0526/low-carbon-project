@@ -15,9 +15,10 @@ const menuItems = computed(() => {
   return user.value.role === 'teacher'
     ? [
         { index: '/teacher/dashboard', label: '教师端' },
+        { index: '/teacher/checkins', label: '打卡审核' },
         { index: '/teacher/carbon', label: '校园碳核算' },
       ]
-    : [{ index: '/student/home', label: '学生端' }]
+    : [{ index: '/student/home', label: '首页' }, { index: '/student/checkin', label: '绿色打卡' }]
 })
 
 function onLogout() {
