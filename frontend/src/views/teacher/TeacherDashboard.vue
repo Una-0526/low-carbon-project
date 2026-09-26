@@ -1,6 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { listActivities, getStats } from '../../api'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { listActivities, getStats, deleteActivity } from '../../api'
+import { useAuth } from '../../stores/auth'
+
+const { user } = useAuth()
 
 const stats = ref({
   total_records: 0,
@@ -21,6 +25,13 @@ async function fetchData() {
   } finally {
     loading.value = false
   }
+}
+
+async function onDelete(row) {
+  await ElMessageBox.confirm(`确定删除「${row.username}」的这条记录吗？`, '删除确认', { type: 'warning' })
+  await deleteActivity(row.id)
+  ElMessage.success('删除成功')
+  await fetchData()
 }
 
 onMounted(fetchData)
@@ -87,6 +98,11 @@ onMounted(fetchData)
         <el-table-column prop="created_at" label="时间" width="180">
           <template #default="{ row }">
             {{ new Date(row.created_at).toLocaleString('zh-CN') }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="100">
+          <template #default="{ row }">
+            <el-button type="danger" link @click="onDelete(row)">删除</el-button>
           </template>
         </el-table-column>
         <template #empty>

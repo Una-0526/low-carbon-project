@@ -3,14 +3,17 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import Base, engine
-from app.routers import carbon
+from app.database import Base, SessionLocal, engine
+from app.routers import auth, carbon
+from app.services import auth_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时自动建表（SQLite）
+    # 启动时自动建表（SQLite），并创建演示账号（仅用户表为空时）
     Base.metadata.create_all(bind=engine)
+    with SessionLocal() as db:
+        auth_service.ensure_demo_users(db)
     yield
 
 
@@ -24,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(carbon.router)
 
 

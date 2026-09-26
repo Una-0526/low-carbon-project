@@ -2,11 +2,13 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { createActivity, listActivities } from '../../api'
+import { useAuth } from '../../stores/auth'
+
+const { user } = useAuth()
 
 const ACTIVITY_TYPES = ['步行', '骑行', '公交/地铁', '光盘行动', '随手关灯', '双面打印']
 
 const form = reactive({
-  username: '',
   activity_type: '步行',
   carbon_saved_kg: 0.5,
   description: '',
@@ -16,12 +18,11 @@ const records = ref([])
 const loading = ref(false)
 const submitting = ref(false)
 
-const recordsRef = ref()
-
 async function fetchRecords() {
   loading.value = true
   try {
-    const { data } = await listActivities({ role: 'student' })
+    // 学生接口只返回本人记录，无需传筛选参数
+    const { data } = await listActivities()
     records.value = data
   } finally {
     loading.value = false
@@ -29,15 +30,9 @@ async function fetchRecords() {
 }
 
 async function onSubmit() {
-  if (!form.username.trim()) {
-    ElMessage.warning('请填写姓名')
-    return
-  }
   submitting.value = true
   try {
     await createActivity({
-      username: form.username.trim(),
-      role: 'student',
       activity_type: form.activity_type,
       carbon_saved_kg: Number(form.carbon_saved_kg),
       description: form.description.trim() || null,
@@ -56,11 +51,15 @@ onMounted(fetchRecords)
 <template>
   <el-row :gutter="20">
     <el-col :span="8">
-      <el-card header="记录我的低碳行为">
+      <el-card>
+        <template #header>
+          <div>
+            我的低碳行为
+            <el-tag type="success" size="small" class="ml">{{ user?.class_name }}</el-tag>
+            <el-tag type="info" size="small" class="ml">{{ user?.dormitory }}</el-tag>
+          </div>
+        </template>
         <el-form label-width="90px">
-          <el-form-item label="姓名" required>
-            <el-input v-model="form.username" placeholder="请输入姓名" />
-          </el-form-item>
           <el-form-item label="行为类型">
             <el-select v-model="form.activity_type">
               <el-option v-for="t in ACTIVITY_TYPES" :key="t" :label="t" :value="t" />
@@ -81,7 +80,7 @@ onMounted(fetchRecords)
 
     <el-col :span="16">
       <el-card header="我的低碳记录">
-        <el-table ref="recordsRef" :data="records" v-loading="loading" stripe>
+        <el-table :data="records" v-loading="loading" stripe>
           <el-table-column prop="username" label="姓名" width="120" />
           <el-table-column prop="activity_type" label="行为类型" width="140" />
           <el-table-column prop="carbon_saved_kg" label="减碳量(kg)" width="120" />
@@ -99,3 +98,9 @@ onMounted(fetchRecords)
     </el-col>
   </el-row>
 </template>
+
+<style scoped>
+.ml {
+  margin-left: 8px;
+}
+</style>

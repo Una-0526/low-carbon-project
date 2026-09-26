@@ -8,10 +8,11 @@ from app.models import CarbonActivity
 from app.schemas import CarbonActivityCreate
 
 
-def create_activity(db: Session, data: CarbonActivityCreate) -> CarbonActivity:
+def create_activity(db: Session, data: CarbonActivityCreate, user) -> CarbonActivity:
+    """username / role 取自登录用户，而不是请求体。"""
     activity = CarbonActivity(
-        username=data.username,
-        role=data.role,
+        username=user.username,
+        role=user.role,
         activity_type=data.activity_type,
         carbon_saved_kg=data.carbon_saved_kg,
         description=data.description,
