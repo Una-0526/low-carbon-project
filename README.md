@@ -94,16 +94,31 @@ npm run dev
 
 ## API 一览
 
-| 方法   | 路径                     | 说明                                      |
-| ------ | ------------------------ | ----------------------------------------- |
-| GET    | `/api/health`            | 健康检查                                  |
-| POST   | `/api/auth/login`        | 登录，返回 JWT 和 role                    |
-| GET    | `/api/auth/me`           | 获取当前登录用户信息（含班级 / 宿舍）     |
-| POST   | `/api/activities`        | 提交记录（身份取自登录态）                |
-| GET    | `/api/activities`        | 查询记录（学生仅本人；教师可按角色/姓名筛选） |
-| GET    | `/api/activities/stats`  | 减碳量统计（仅教师）                      |
-| DELETE | `/api/activities/{id}`   | 删除记录（仅教师）                        |
+| 方法   | 路径                          | 说明                                          |
+| ------ | ----------------------------- | --------------------------------------------- |
+| GET    | `/api/health`                 | 健康检查                                      |
+| POST   | `/api/auth/login`             | 登录，返回 JWT 和 role                        |
+| GET    | `/api/auth/me`                | 获取当前登录用户信息（含班级 / 宿舍）         |
+| POST   | `/api/activities`             | 提交记录（身份取自登录态）                    |
+| GET    | `/api/activities`             | 查询记录（学生仅本人；教师可按角色/姓名筛选） |
+| GET    | `/api/activities/stats`       | 减碳量统计（仅教师）                          |
+| DELETE | `/api/activities/{id}`        | 删除记录（仅教师）                            |
+| GET    | `/api/carbon/factors`         | 查询排放因子表（登录即可）                    |
+| PUT    | `/api/carbon/factors/{key}`   | 修改因子数值（仅教师，改后立即生效）          |
+| POST   | `/api/carbon/records`         | 录入建筑能耗记录（仅教师）                    |
+| GET    | `/api/carbon/records`         | 查询能耗记录与逐条核算结果（仅教师）          |
+| DELETE | `/api/carbon/records/{id}`    | 删除能耗记录（仅教师）                        |
+| GET    | `/api/carbon/stats`           | 碳排放统计（仅教师）：`group_by=building\|month\|semester`，可加 `year`/`building`/`semester` 筛选 |
 
 除健康检查和登录外，其余接口均需请求头 `Authorization: Bearer <token>`。
+
+### 碳核算口径（kgCO2e）
+
+- Scope2 排放 = 用电量(kWh) × 电网排放因子（默认 0.5703）
+- Scope1 排放 = 天然气(m³) × 2.162 + 汽油(L) × 2.30
+- 减碳量 = 光伏 / 储能削峰 / 节能电量 × 对应减碳因子（默认 0.5703，即替代电网电量）
+- 净排放 = Scope1 + Scope2 − 减碳量
+
+因子存于 `carbon_factors` 表，可通过 API 修改；核算逻辑见 `backend/app/services/carbon.py`。
 
 完整参数说明见 `/docs` 下的 Swagger 文档。
