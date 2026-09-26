@@ -41,8 +41,8 @@ low-carbon project/
 │       ├── auth.py               # 密码哈希 / JWT / 登录态与权限依赖
 │       ├── database.py           # SQLite + SQLAlchemy 连接
 │       ├── schemas.py            # Pydantic 请求/响应模型
-│       ├── models/               # SQLAlchemy ORM 模型（User、CarbonActivity）
-│       ├── routers/              # 路由（认证、API 接口）
+│       ├── models/               # SQLAlchemy ORM 模型（User、CarbonActivity、Checkin 等）
+│       ├── routers/              # 路由（认证、碳核算、打卡、积分）
 │       └── services/             # 业务逻辑层
 └── README.md
 ```
@@ -116,6 +116,15 @@ npm run dev
 | GET    | `/api/carbon/records`         | 查询能耗记录与逐条核算结果（仅教师）          |
 | DELETE | `/api/carbon/records/{id}`    | 删除能耗记录（仅教师）                        |
 | GET    | `/api/carbon/stats`           | 碳排放统计（仅教师）：`group_by=building\|month\|semester`，可加 `year`/`building`/`semester` 筛选 |
+| GET    | `/api/checkins/tasks`         | 打卡任务类型与基础积分                        |
+| POST   | `/api/checkins`               | 提交打卡（multipart，可带定位经纬度与照片，自动 AI 防作弊检查） |
+| GET    | `/api/checkins/me`            | 我的打卡记录                                  |
+| GET    | `/api/checkins/me/summary`    | 我的累计积分与连续打卡天数                    |
+| GET    | `/api/checkins`               | 全部打卡（仅教师，可按 status/ai_flagged/user_id 筛选） |
+| POST   | `/api/checkins/{id}/approve`  | 审核通过：积分入账 + 连续奖励（仅教师）       |
+| POST   | `/api/checkins/{id}/reject`   | 审核驳回（仅教师）                            |
+| GET    | `/api/points/me`              | 我的积分流水与累计积分                        |
+| GET    | `/api/points/transactions`    | 指定学生积分流水（仅教师，`user_id=`）        |
 
 除健康检查和登录外，其余接口均需请求头 `Authorization: Bearer <token>`。
 
@@ -128,4 +137,22 @@ npm run dev
 
 因子存于 `carbon_factors` 表，可通过 API 修改；核算逻辑见 `backend/app/services/carbon.py`。
 
+### 绿色打卡规则
+
+- 任务类型与基础积分：骑行 10 / 光盘 5 / 自带水杯 3 / 爬楼 3 / 随手关灯 2
+- 打卡提交后为 `pending` 状态，教师审核通过后积分入账 `point_transactions` 流水表
+- 连续打卡里程碑奖励：连打 3 天 +5 分、7 天 +10 分、14 天 +20 分、30 天 +50 分
+- AI 防作弊（自动标记 `ai_flagged`，不影响提交，由教师审核裁决）：
+  - 同类型打卡间隔不足 5 分钟
+  - 打卡定位距学生宿舍坐标超过 2km（疑似位置漂移）
+- 打卡照片保存于 `backend/uploads/`（不入库 git），通过 `/uploads/文件名` 访问
+
 完整参数说明见 `/docs` 下的 Swagger 文档。
+
+## 测试
+
+```bash
+cd backend
+.venv\Scripts\activate
+python test_checkin_api.py   # 打卡全流程 15 项断言（防作弊/上传/审核/积分/权限）
+```

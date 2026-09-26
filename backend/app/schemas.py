@@ -111,3 +111,52 @@ class CarbonStatsOut(BaseModel):
     group_by: str
     unit: str = "kgCO2e"
     rows: list[StatRowOut]
+
+
+# ---------- 绿色打卡 / 积分 ----------
+
+class CheckinOut(BaseModel):
+    id: int
+    user_id: int
+    username: str
+    task_type: str
+    photo_path: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    status: str
+    ai_flagged: bool
+    ai_flags: list[str] = []
+    points_awarded: int
+    review_reason: str | None = None
+    created_at: datetime
+
+
+class RejectIn(BaseModel):
+    reason: str | None = Field(default=None, max_length=200)
+
+
+class ApproveResultOut(BaseModel):
+    checkin: CheckinOut
+    streak: int
+    bonus: int
+
+
+class CheckinSummaryOut(BaseModel):
+    total_points: int
+    streak_days: int
+
+
+class PointTransactionOut(BaseModel):
+    id: int
+    points: int
+    reason: str
+    checkin_id: int | None = None
+    description: str | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PointSummaryOut(BaseModel):
+    total_points: int
+    transactions: list[PointTransactionOut]

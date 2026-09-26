@@ -9,6 +9,9 @@ venv/
 *.db
 *.sqlite3
 
+# 用户上传文件
+backend/uploads/
+
 # Node
 node_modules/
 dist/

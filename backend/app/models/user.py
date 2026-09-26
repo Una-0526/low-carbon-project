@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import DateTime, Float, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -20,4 +20,6 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(10))  # student / teacher
     class_name: Mapped[str | None] = mapped_column("class_name", String(50), default=None)  # 班级
     dormitory: Mapped[str | None] = mapped_column(String(50), default=None)  # 宿舍
+    dorm_latitude: Mapped[float | None] = mapped_column(Float, default=None)  # 宿舍纬度（打卡位置校验用）
+    dorm_longitude: Mapped[float | None] = mapped_column(Float, default=None)  # 宿舍经度
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
