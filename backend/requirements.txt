@@ -1,0 +1,5 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+# 固定 2.0.42：Windows Smart App Control 会拦截 2.0.43+ 的 Cython 编译扩展
+sqlalchemy==2.0.42
+pydantic>=2.0.0
