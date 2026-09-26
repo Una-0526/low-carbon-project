@@ -13,7 +13,10 @@ const isLogin = computed(() => route.path === '/login')
 const menuItems = computed(() => {
   if (!user.value) return []
   return user.value.role === 'teacher'
-    ? [{ index: '/teacher/dashboard', label: '教师端' }]
+    ? [
+        { index: '/teacher/dashboard', label: '教师端' },
+        { index: '/teacher/carbon', label: '校园碳核算' },
+      ]
     : [{ index: '/student/home', label: '学生端' }]
 })
 

@@ -65,7 +65,14 @@ pip install -r requirements.txt
 
 # 4. 启动服务
 uvicorn app.main:app --reload --port 8000
+
+# （可选）生成最近 12 个月的模拟能耗数据，方便验证碳核算接口
+python seed_mock_data.py            # energy_records 为空时生成
+python seed_mock_data.py --force    # 清空已有能耗记录后重新生成
 ```
+
+模拟数据覆盖：教学楼A/B、宿舍楼、图书馆、食堂（含天然气）、公务车（汽油）。
+用电量按日模拟再按月汇总：周末低于工作日，冬夏为制冷/采暖高峰，寒暑假教学楼/图书馆明显下降。
 
 启动后：
 

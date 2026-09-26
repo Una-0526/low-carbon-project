@@ -3,6 +3,7 @@ import { useAuth } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import StudentHome from '../views/student/StudentHome.vue'
 import TeacherDashboard from '../views/teacher/TeacherDashboard.vue'
+import CarbonAccounting from '../views/teacher/CarbonAccounting.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -23,6 +24,12 @@ const router = createRouter({
       path: '/teacher/dashboard',
       name: 'teacher-dashboard',
       component: TeacherDashboard,
+      meta: { role: 'teacher' },
+    },
+    {
+      path: '/teacher/carbon',
+      name: 'teacher-carbon',
+      component: CarbonAccounting,
       meta: { role: 'teacher' },
     },
     // 兼容旧路径
