@@ -7,6 +7,7 @@ import TeacherDashboard from '../views/teacher/TeacherDashboard.vue'
 import TeacherCheckins from '../views/teacher/TeacherCheckins.vue'
 import CarbonAccounting from '../views/teacher/CarbonAccounting.vue'
 import BuildingDiagnosis from '../views/teacher/BuildingDiagnosis.vue'
+import PathwayView from '../views/teacher/PathwayView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -51,6 +52,12 @@ const router = createRouter({
       path: '/teacher/diagnosis',
       name: 'teacher-diagnosis',
       component: BuildingDiagnosis,
+      meta: { role: 'teacher' },
+    },
+    {
+      path: '/teacher/pathway',
+      name: 'teacher-pathway',
+      component: PathwayView,
       meta: { role: 'teacher' },
     },
     // 兼容旧路径

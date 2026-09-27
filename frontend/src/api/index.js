@@ -136,3 +136,8 @@ export function updateSolution(id, data) {
 export function deleteSolution(id) {
   return api.delete(`/diagnosis/solutions/${id}`)
 }
+
+/** 碳中和路径模拟（三情景逐年排放 + 达峰/中和年份） */
+export function getCarbonPathway() {
+  return api.get('/pathway/simulate')
+}

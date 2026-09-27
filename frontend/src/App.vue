@@ -18,6 +18,7 @@ const menuItems = computed(() => {
         { index: '/teacher/checkins', label: '打卡审核' },
         { index: '/teacher/carbon', label: '校园碳核算' },
         { index: '/teacher/diagnosis', label: '异常诊断' },
+        { index: '/teacher/pathway', label: '中和路径' },
       ]
     : [{ index: '/student/home', label: '首页' }, { index: '/student/checkin', label: '绿色打卡' }]
 })

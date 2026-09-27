@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, SessionLocal, engine, ensure_sqlite_columns
-from app.routers import auth, carbon, carbon_accounting, checkin, diagnosis
+from app.routers import auth, carbon, carbon_accounting, checkin, diagnosis, pathway
 from app.routers.checkin import UPLOAD_DIR
 from app.services import auth_service
 from app.services import carbon as carbon_service
@@ -40,6 +40,7 @@ app.include_router(carbon_accounting.router)
 app.include_router(checkin.router)
 app.include_router(checkin.points_router)
 app.include_router(diagnosis.router)
+app.include_router(pathway.router)
 
 # 打卡照片等静态文件
 UPLOAD_DIR.mkdir(exist_ok=True)
