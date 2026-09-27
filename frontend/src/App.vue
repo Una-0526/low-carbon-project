@@ -21,7 +21,8 @@ const menuItems = computed(() => {
         { index: '/teacher/diagnosis', label: '异常诊断' },
         { index: '/teacher/pathway', label: '中和路径' },
       ]
-    : [{ index: '/student/home', label: '首页' }, { index: '/student/checkin', label: '绿色打卡' }]
+    : [{ index: '/student/home', label: '首页' }, { index: '/student/checkin', label: '绿色打卡' },
+       { index: '/student/diagnosis', label: '我的碳诊断' }]
 })
 
 function onLogout() {

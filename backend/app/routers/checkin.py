@@ -17,7 +17,8 @@ from app.auth import get_current_user, require_teacher
 from app.database import get_db
 from app.models import Checkin, User
 from app.schemas import (ApproveResultOut, CheckinOut, CheckinSummaryOut,
-                         PointSummaryOut, PointTransactionOut, RejectIn)
+                         MyDiagnosisOut, PointSummaryOut, PointTransactionOut,
+                         RejectIn)
 from app.services import checkin_service, point_service
 
 router = APIRouter(prefix="/api/checkins", tags=["绿色打卡"])
@@ -114,6 +115,12 @@ def my_checkins(user: User = Depends(get_current_user), db: Session = Depends(ge
 def my_summary(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """我的积分与连续打卡天数。"""
     return checkin_service.student_summary(db, user.id)
+
+
+@router.get("/me/diagnosis", response_model=MyDiagnosisOut)
+def my_diagnosis(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """我的碳诊断：本周/本月减碳、行为分类统计、个性化建议、月度班级排名百分位。"""
+    return checkin_service.my_diagnosis(db, user)
 
 
 # ---------- 教师端 ----------

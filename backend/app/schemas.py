@@ -193,3 +193,33 @@ class PointTransactionOut(BaseModel):
 class PointSummaryOut(BaseModel):
     total_points: int
     transactions: list[PointTransactionOut]
+
+
+# ---------- 学生碳诊断 ----------
+
+class CategoryStatOut(BaseModel):
+    category: str          # 出行 / 饮食 / 节约用电
+    week_count: int
+    week_carbon_kg: float
+
+
+class MonthlyReportOut(BaseModel):
+    month: str                     # 如 2026-09
+    carbon_kg: float               # 本月减碳总量
+    checkin_count: int
+    class_name: str | None
+    rank: int | None               # 班级排名
+    class_size: int | None
+    percentile: int | None         # 超过班级同学的百分比
+
+
+class MyDiagnosisOut(BaseModel):
+    week_carbon_kg: float
+    week_count: int
+    month_carbon_kg: float
+    month_count: int
+    total_points: int
+    streak_days: int
+    categories: list[CategoryStatOut]
+    advice: list[str]
+    monthly_report: MonthlyReportOut

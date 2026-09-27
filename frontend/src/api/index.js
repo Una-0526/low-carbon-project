@@ -107,6 +107,11 @@ export function getMyCheckinSummary() {
   return api.get('/checkins/me/summary')
 }
 
+/** 我的碳诊断：本周/本月减碳、分类统计、个性化建议、月度班级排名 */
+export function getMyDiagnosis() {
+  return api.get('/checkins/me/diagnosis')
+}
+
 /** 我的积分流水 */
 export function getMyPoints() {
   return api.get('/points/me')

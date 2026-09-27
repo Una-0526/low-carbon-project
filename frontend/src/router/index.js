@@ -3,6 +3,7 @@ import { useAuth } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import StudentHome from '../views/student/StudentHome.vue'
 import StudentCheckin from '../views/student/StudentCheckin.vue'
+import StudentDiagnosis from '../views/student/StudentDiagnosis.vue'
 import TeacherDashboard from '../views/teacher/TeacherDashboard.vue'
 import TeacherCheckins from '../views/teacher/TeacherCheckins.vue'
 import CarbonAccounting from '../views/teacher/CarbonAccounting.vue'
@@ -29,6 +30,12 @@ const router = createRouter({
       path: '/student/checkin',
       name: 'student-checkin',
       component: StudentCheckin,
+      meta: { role: 'student' },
+    },
+    {
+      path: '/student/diagnosis',
+      name: 'student-diagnosis',
+      component: StudentDiagnosis,
       meta: { role: 'student' },
     },
     {
