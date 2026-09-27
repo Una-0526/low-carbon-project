@@ -4,6 +4,9 @@
 - 用电量按「日模拟 → 月汇总」：工作日为基础负荷，周末按比例下降；
   夏季（7、8月）与冬季（12、1月）因制冷/采暖偏高；
   寒暑假（2、7、8月）教学楼 / 图书馆用电明显下降，宿舍、食堂基本不变。
+- 每条记录同时写入夜间(22:00-6:00)电量（各建筑占比固定，用于异常诊断）。
+- 最新一个月图书馆为异常样例：电量 ×1.2 且夜间占比 55%（模拟"下班后空调未关"），
+  用于触发诊断规则（环比 >15% 且夜间占比 >40%）。
 - 食堂：每月同时写入天然气（工作日高于周末，食堂周末开餐少）。
 - 公务车：每月写入一条汽油用量（building 字段复用为"公务车"）。
 
@@ -30,14 +33,20 @@ SEASONAL = [1.35, 1.15, 1.00, 0.95, 1.00, 1.15, 1.30, 1.30, 1.10, 1.00, 1.10, 1.
 # 假期系数：寒暑假教学 / 图书馆用电下降
 VACATION = {2: 0.55, 7: 0.60, 8: 0.60}
 
-# 用电建筑：(名称, 工作日日电量kWh, 周末日电量kWh, 是否受寒暑假影响)
+# 用电建筑：(名称, 工作日日电量kWh, 周末日电量kWh, 是否受寒暑假影响, 夜间(22:00-6:00)用电占比)
+# 宿舍夜间用电天然偏高；图书馆自习室夜间常有人；食堂夜间基本停业
 ELECTRIC_BUILDINGS = [
-    ("教学楼A", 1500, 600, True),
-    ("教学楼B", 1300, 520, True),
-    ("宿舍楼", 1200, 1140, False),
-    ("图书馆", 1000, 500, True),
-    ("食堂", 600, 500, False),
+    ("教学楼A", 1500, 600, True, 0.28),
+    ("教学楼B", 1300, 520, True, 0.26),
+    ("宿舍楼", 1200, 1140, False, 0.38),
+    ("图书馆", 1000, 500, True, 0.36),
+    ("食堂", 600, 500, False, 0.18),
 ]
+
+# 异常样例：最新一个月图书馆「空调未关」——电量抬升 + 夜间占比骤增，用于触发异常诊断
+ANOMALY_BUILDING = "图书馆"
+ANOMALY_MONTH_BOOST = 1.20   # 当月电量 ×1.2（环比碳排放 > 15%）
+ANOMALY_NIGHT_RATIO = 0.55   # 夜间占比 > 40% 阈值
 
 # 食堂天然气：(工作日 m³/日, 周末 m³/日)
 CANTEEN_GAS = (160, 80)
@@ -103,13 +112,20 @@ def main() -> None:
             print(f"已清空原有 {existing} 条能耗记录")
 
         count = 0
-        for year, month in recent_months(12):
-            for name, weekday_kwh, weekend_kwh, has_vacation in ELECTRIC_BUILDINGS:
+        months = recent_months(12)
+        for i, (year, month) in enumerate(months):
+            for name, weekday_kwh, weekend_kwh, has_vacation, night_ratio in ELECTRIC_BUILDINGS:
+                elec = monthly_electricity(year, month, weekday_kwh, weekend_kwh, has_vacation)
+                # 最新一个月：异常样例建筑电量抬升、夜间占比提高
+                if i == len(months) - 1 and name == ANOMALY_BUILDING:
+                    elec = round(elec * ANOMALY_MONTH_BOOST, 1)
+                    night_ratio = ANOMALY_NIGHT_RATIO
                 record_in = EnergyRecordIn(
                     building=name,
                     year=year,
                     month=month,
-                    electricity_kwh=monthly_electricity(year, month, weekday_kwh, weekend_kwh, has_vacation),
+                    electricity_kwh=elec,
+                    night_electricity_kwh=round(elec * night_ratio, 1),
                     natural_gas_m3=monthly_canteen_gas(year, month) if name == "食堂" else 0,
                 )
                 carbon_service.create_record(db, record_in)
@@ -122,7 +138,8 @@ def main() -> None:
             ))
             count += 1
 
-        print(f"已生成 {count} 条记录（{len(recent_months(12))} 个月：5 栋建筑用电 + 食堂天然气 + 公务车汽油）")
+        print(f"已生成 {count} 条记录（{len(months)} 个月：5 栋建筑用电 + 食堂天然气 + 公务车汽油，"
+              f"最新月 {months[-1][0]}-{months[-1][1]:02d} 包含 {ANOMALY_BUILDING} 异常样例）")
         print("\n各建筑碳核算汇总（kgCO2e）：")
         for row in carbon_service.get_stats(db, "building"):
             print(f"  {row['group']}: 总排放 {row['total_emission']:.1f}，减碳 {row['total_reduction']:.1f}，净排放 {row['net_emission']:.1f}")

@@ -17,6 +17,7 @@ class EnergyRecord(Base):
 
     # 排放活动数据
     electricity_kwh: Mapped[float] = mapped_column(Float, default=0.0)   # 市电用电量 → Scope2
+    night_electricity_kwh: Mapped[float] = mapped_column(Float, default=0.0)  # 其中夜间(22:00-6:00)电量，用于异常诊断
     natural_gas_m3: Mapped[float] = mapped_column(Float, default=0.0)    # 天然气 → Scope1
     gasoline_l: Mapped[float] = mapped_column(Float, default=0.0)        # 汽油 → Scope1
 

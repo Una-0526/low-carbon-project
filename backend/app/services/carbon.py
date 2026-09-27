@@ -84,6 +84,7 @@ def create_record(db: Session, data: EnergyRecordIn) -> tuple[EnergyRecord, dict
         month=data.month,
         semester=semester_of(data.year, data.month),
         electricity_kwh=data.electricity_kwh,
+        night_electricity_kwh=data.night_electricity_kwh,
         natural_gas_m3=data.natural_gas_m3,
         gasoline_l=data.gasoline_l,
         pv_kwh=data.pv_kwh,

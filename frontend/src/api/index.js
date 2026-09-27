@@ -111,3 +111,28 @@ export function approveCheckin(id) {
 export function rejectCheckin(id, reason) {
   return api.post(`/checkins/${id}/reject`, { reason: reason || null })
 }
+
+/** 建筑异常诊断（本月环比 + 夜间用电占比） */
+export function getBuildingDiagnosis() {
+  return api.get('/diagnosis/buildings')
+}
+
+/** 方案库列表（含年减碳量/年省电费/回收期测算） */
+export function getSolutions() {
+  return api.get('/diagnosis/solutions')
+}
+
+/** 新增方案 */
+export function createSolution(data) {
+  return api.post('/diagnosis/solutions', data)
+}
+
+/** 修改方案参数 */
+export function updateSolution(id, data) {
+  return api.put(`/diagnosis/solutions/${id}`, data)
+}
+
+/** 删除方案 */
+export function deleteSolution(id) {
+  return api.delete(`/diagnosis/solutions/${id}`)
+}

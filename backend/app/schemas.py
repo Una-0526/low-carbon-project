@@ -76,6 +76,7 @@ class EnergyRecordIn(BaseModel):
     year: int = Field(ge=2000, le=2100)
     month: int = Field(ge=1, le=12)
     electricity_kwh: float = Field(default=0, ge=0)   # 市电 → Scope2
+    night_electricity_kwh: float = Field(default=0, ge=0)  # 夜间(22:00-6:00)电量，应 ≤ 用电量
     natural_gas_m3: float = Field(default=0, ge=0)    # 天然气 → Scope1
     gasoline_l: float = Field(default=0, ge=0)        # 汽油 → Scope1
     pv_kwh: float = Field(default=0, ge=0)            # 光伏发电（减碳）
@@ -111,6 +112,37 @@ class CarbonStatsOut(BaseModel):
     group_by: str
     unit: str = "kgCO2e"
     rows: list[StatRowOut]
+
+
+# ---------- 异常诊断 / 方案库 ----------
+
+class SolutionIn(BaseModel):
+    name: str = Field(min_length=1, max_length=50)
+    category: str = Field(min_length=1, max_length=20)  # 光伏 / 储能 / 节能改造 / 峰谷策略
+    annual_electricity_kwh: float = Field(ge=0)   # 年覆盖电量
+    investment: float = Field(ge=0)               # 投资额（元）
+    electricity_price: float = Field(ge=0)        # 折算电价（元/kWh）
+    factor: float | None = Field(default=None, ge=0)  # 减碳因子，缺省用电网因子
+    description: str | None = Field(default=None, max_length=200)
+
+
+class SolutionOut(SolutionIn):
+    id: int
+    annual_carbon_reduction_kg: float  # 年减碳量 = 电量 × 因子
+    annual_saving_yuan: float          # 年省电费 = 电量 × 电价
+    payback_years: float | None        # 回收期 = 投资 ÷ 年省电费
+
+
+class BuildingDiagnosisOut(BaseModel):
+    building: str
+    current_month: str | None      # 如 2026-09
+    last_month: str | None
+    current_emission_kg: float | None
+    last_emission_kg: float | None
+    mom_change_pct: float | None   # 环比变化 %
+    night_ratio_pct: float | None  # 夜间用电占比 %
+    status: str                    # 异常 / 正常 / 数据不足
+    message: str                   # 诊断结论
 
 
 # ---------- 绿色打卡 / 积分 ----------
