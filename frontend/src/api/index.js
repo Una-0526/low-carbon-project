@@ -161,3 +161,43 @@ export function deleteSolution(id) {
 export function getCarbonPathway() {
   return api.get('/pathway/simulate')
 }
+
+/** 上架商品列表（积分商城） */
+export function getMallItems() {
+  return api.get('/mall/items')
+}
+
+/** 积分兑换商品 */
+export function redeemItem(itemId) {
+  return api.post(`/mall/items/${itemId}/redeem`)
+}
+
+/** 我的兑换记录 */
+export function getMyRedemptions() {
+  return api.get('/mall/redemptions/me')
+}
+
+/** 全部商品，含已下架（教师） */
+export function getAdminRewardItems() {
+  return api.get('/mall/admin/items')
+}
+
+/** 新增商品（教师） */
+export function createRewardItem(data) {
+  return api.post('/mall/admin/items', data)
+}
+
+/** 编辑商品：名称/分类/积分/库存/上下架（教师） */
+export function updateRewardItem(id, data) {
+  return api.put(`/mall/admin/items/${id}`, data)
+}
+
+/** 全部兑换记录，可按状态筛选（教师） */
+export function getAdminRedemptions(params) {
+  return api.get('/mall/admin/redemptions', { params })
+}
+
+/** 标记兑换记录为已领取（教师） */
+export function fulfillRedemption(id) {
+  return api.post(`/mall/admin/redemptions/${id}/fulfill`)
+}

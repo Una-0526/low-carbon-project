@@ -4,12 +4,14 @@ import LoginView from '../views/LoginView.vue'
 import StudentHome from '../views/student/StudentHome.vue'
 import StudentCheckin from '../views/student/StudentCheckin.vue'
 import StudentDiagnosis from '../views/student/StudentDiagnosis.vue'
+import StudentMall from '../views/student/StudentMall.vue'
 import TeacherDashboard from '../views/teacher/TeacherDashboard.vue'
 import TeacherCheckins from '../views/teacher/TeacherCheckins.vue'
 import CarbonAccounting from '../views/teacher/CarbonAccounting.vue'
 import BuildingDiagnosis from '../views/teacher/BuildingDiagnosis.vue'
 import PathwayView from '../views/teacher/PathwayView.vue'
 import EnergyInput from '../views/teacher/EnergyInput.vue'
+import TeacherRewards from '../views/teacher/TeacherRewards.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -36,6 +38,12 @@ const router = createRouter({
       path: '/student/diagnosis',
       name: 'student-diagnosis',
       component: StudentDiagnosis,
+      meta: { role: 'student' },
+    },
+    {
+      path: '/student/mall',
+      name: 'student-mall',
+      component: StudentMall,
       meta: { role: 'student' },
     },
     {
@@ -72,6 +80,12 @@ const router = createRouter({
       path: '/teacher/energy-input',
       name: 'teacher-energy-input',
       component: EnergyInput,
+      meta: { role: 'teacher' },
+    },
+    {
+      path: '/teacher/rewards',
+      name: 'teacher-rewards',
+      component: TeacherRewards,
       meta: { role: 'teacher' },
     },
     // 兼容旧路径

@@ -5,22 +5,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, SessionLocal, engine, ensure_sqlite_columns
-from app.routers import auth, carbon, carbon_accounting, checkin, diagnosis, pathway
+from app.routers import auth, carbon, carbon_accounting, checkin, diagnosis, mall, pathway
 from app.routers.checkin import UPLOAD_DIR
 from app.services import auth_service
 from app.services import carbon as carbon_service
 from app.services import diagnosis as diagnosis_service
+from app.services import mall as mall_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时自动建表（SQLite），并创建演示账号 / 默认排放因子 / 默认方案库（仅对应表为空时）
+    # 启动时自动建表（SQLite），并创建演示账号 / 默认排放因子 / 默认方案库 / 默认商城商品（仅对应表为空时）
     Base.metadata.create_all(bind=engine)
     ensure_sqlite_columns()  # 旧库补齐新增列
     with SessionLocal() as db:
         auth_service.ensure_demo_users(db)
         carbon_service.ensure_default_factors(db)
         diagnosis_service.ensure_default_solutions(db)
+        mall_service.ensure_default_reward_items(db)
     yield
 
 
@@ -41,6 +43,8 @@ app.include_router(checkin.router)
 app.include_router(checkin.points_router)
 app.include_router(diagnosis.router)
 app.include_router(pathway.router)
+app.include_router(mall.router)
+app.include_router(mall.admin_router)
 
 # 打卡照片等静态文件
 UPLOAD_DIR.mkdir(exist_ok=True)

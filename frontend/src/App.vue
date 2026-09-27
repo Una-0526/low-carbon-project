@@ -17,12 +17,16 @@ const menuItems = computed(() => {
         { index: '/teacher/dashboard', label: '教师端' },
         { index: '/teacher/checkins', label: '打卡审核' },
         { index: '/teacher/energy-input', label: '能耗录入' },
+        { index: '/teacher/rewards', label: '商品管理' },
         { index: '/teacher/carbon', label: '校园碳核算' },
         { index: '/teacher/diagnosis', label: '异常诊断' },
         { index: '/teacher/pathway', label: '中和路径' },
       ]
-    : [{ index: '/student/home', label: '首页' }, { index: '/student/checkin', label: '绿色打卡' },
-       { index: '/student/diagnosis', label: '我的碳诊断' }]
+    : [
+        { index: '/student/home', label: '首页' },
+        { index: '/student/checkin', label: '绿色打卡' },
+        { index: '/student/mall', label: '积分商城' },
+        { index: '/student/diagnosis', label: '我的碳诊断' }]
 })
 
 function onLogout() {

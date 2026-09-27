@@ -223,3 +223,43 @@ class MyDiagnosisOut(BaseModel):
     categories: list[CategoryStatOut]
     advice: list[str]
     monthly_report: MonthlyReportOut
+
+
+# ---------- 积分商城 ----------
+
+class RewardItemOut(BaseModel):
+    id: int
+    name: str
+    category: str
+    points_cost: int
+    stock: int
+    is_active: bool
+    description: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class RewardItemIn(BaseModel):
+    name: str = Field(min_length=1, max_length=50)
+    category: str = Field(min_length=1, max_length=20)  # 食堂 / 超市 / 文具
+    points_cost: int = Field(ge=1)
+    stock: int = Field(ge=0)
+    is_active: bool = True
+    description: str | None = Field(default=None, max_length=200)
+
+
+class RedemptionOut(BaseModel):
+    id: int
+    user_id: int
+    username: str
+    item_id: int
+    item_name: str
+    points_cost: int
+    status: str
+    created_at: datetime
+    fulfilled_at: datetime | None = None
+
+
+class RedeemResultOut(BaseModel):
+    redemption: RedemptionOut
+    remaining_points: int
