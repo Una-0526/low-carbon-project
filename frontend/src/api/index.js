@@ -62,6 +62,21 @@ export function getCarbonRecords(params) {
   return api.get('/carbon/records', { params })
 }
 
+/** 录入建筑能耗记录（后端按因子自动核算，教师） */
+export function createCarbonRecord(data) {
+  return api.post('/carbon/records', data)
+}
+
+/** 修改能耗记录并重算（教师） */
+export function updateCarbonRecord(id, data) {
+  return api.put(`/carbon/records/${id}`, data)
+}
+
+/** 删除能耗记录（教师） */
+export function deleteCarbonRecord(id) {
+  return api.delete(`/carbon/records/${id}`)
+}
+
 /** 碳排放统计：group_by = building | month | semester（教师） */
 export function getCarbonStats(params) {
   return api.get('/carbon/stats', { params })

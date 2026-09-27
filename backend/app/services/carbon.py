@@ -97,6 +97,27 @@ def create_record(db: Session, data: EnergyRecordIn) -> tuple[EnergyRecord, dict
     return record, calc_emissions(record, load_factors(db))
 
 
+def update_record(db: Session, record_id: int, data: EnergyRecordIn) -> tuple[EnergyRecord, dict] | None:
+    """修改能耗记录：覆盖全部数值字段，学期随年月重新推导，返回重算结果。"""
+    record = db.get(EnergyRecord, record_id)
+    if record is None:
+        return None
+    record.building = data.building
+    record.year = data.year
+    record.month = data.month
+    record.semester = semester_of(data.year, data.month)
+    record.electricity_kwh = data.electricity_kwh
+    record.night_electricity_kwh = data.night_electricity_kwh
+    record.natural_gas_m3 = data.natural_gas_m3
+    record.gasoline_l = data.gasoline_l
+    record.pv_kwh = data.pv_kwh
+    record.storage_kwh = data.storage_kwh
+    record.saving_kwh = data.saving_kwh
+    db.commit()
+    db.refresh(record)
+    return record, calc_emissions(record, load_factors(db))
+
+
 def list_records(
     db: Session,
     year: int | None = None,

@@ -70,6 +70,21 @@ def list_records(
     ]
 
 
+@router.put("/records/{record_id}", response_model=EnergyRecordOut, summary="修改能耗记录并重算（教师）")
+def update_record(
+    record_id: int,
+    data: EnergyRecordIn,
+    user=Depends(require_teacher),
+    db: Session = Depends(get_db),
+):
+    result = carbon_service.update_record(db, record_id, data)
+    if result is None:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    record, emissions = result
+    return EnergyRecordOut(**data.model_dump(), id=record.id, semester=record.semester,
+                           emissions=emissions)
+
+
 @router.delete("/records/{record_id}", summary="删除能耗记录（教师）")
 def delete_record(record_id: int, user=Depends(require_teacher), db: Session = Depends(get_db)):
     record = db.get(EnergyRecord, record_id)

@@ -16,6 +16,7 @@ const menuItems = computed(() => {
     ? [
         { index: '/teacher/dashboard', label: '教师端' },
         { index: '/teacher/checkins', label: '打卡审核' },
+        { index: '/teacher/energy-input', label: '能耗录入' },
         { index: '/teacher/carbon', label: '校园碳核算' },
         { index: '/teacher/diagnosis', label: '异常诊断' },
         { index: '/teacher/pathway', label: '中和路径' },

@@ -34,13 +34,14 @@ SEASONAL = [1.35, 1.15, 1.00, 0.95, 1.00, 1.15, 1.30, 1.30, 1.10, 1.00, 1.10, 1.
 VACATION = {2: 0.55, 7: 0.60, 8: 0.60}
 
 # 用电建筑：(名称, 工作日日电量kWh, 周末日电量kWh, 是否受寒暑假影响, 夜间(22:00-6:00)用电占比)
+# 量级参照真实校园：教学楼月用电 3-5 万度、宿舍楼 2-3 万度、图书馆约 3 万度、食堂约 1 万度；
 # 宿舍夜间用电天然偏高；图书馆自习室夜间常有人；食堂夜间基本停业
 ELECTRIC_BUILDINGS = [
     ("教学楼A", 1500, 600, True, 0.28),
-    ("教学楼B", 1300, 520, True, 0.26),
-    ("宿舍楼", 1200, 1140, False, 0.38),
-    ("图书馆", 1000, 500, True, 0.36),
-    ("食堂", 600, 500, False, 0.18),
+    ("教学楼B", 1450, 580, True, 0.26),
+    ("宿舍楼", 780, 730, False, 0.38),
+    ("图书馆", 1350, 675, True, 0.36),
+    ("食堂", 430, 360, False, 0.18),
 ]
 
 # 异常样例：最新一个月图书馆「空调未关」——电量抬升 + 夜间占比骤增，用于触发异常诊断
@@ -48,10 +49,10 @@ ANOMALY_BUILDING = "图书馆"
 ANOMALY_MONTH_BOOST = 1.20   # 当月电量 ×1.2（环比碳排放 > 15%）
 ANOMALY_NIGHT_RATIO = 0.55   # 夜间占比 > 40% 阈值
 
-# 食堂天然气：(工作日 m³/日, 周末 m³/日)
+# 食堂天然气：(工作日 m³/日, 周末 m³/日)，月用量约 4000-5000 m³
 CANTEEN_GAS = (160, 80)
-# 公务车：每月汽油基数（L）
-VEHICLE_GASOLINE_MONTHLY = 500
+# 公务车：每月汽油基数（L），月耗油 200-400 L
+VEHICLE_GASOLINE_MONTHLY = 350
 
 
 def recent_months(n: int = 12) -> list[tuple[int, int]]:
@@ -134,7 +135,7 @@ def main() -> None:
                 building="公务车",
                 year=year,
                 month=month,
-                gasoline_l=round(VEHICLE_GASOLINE_MONTHLY * rng.uniform(0.8, 1.2), 1),
+                gasoline_l=round(VEHICLE_GASOLINE_MONTHLY * rng.uniform(0.9, 1.1), 1),
             ))
             count += 1
 
