@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -263,3 +263,52 @@ class RedemptionOut(BaseModel):
 class RedeemResultOut(BaseModel):
     redemption: RedemptionOut
     remaining_points: int
+
+
+# ---------- 积分排行榜 ----------
+
+class LeaderboardItemOut(BaseModel):
+    """个人榜项含 user 信息与名次变化；宿舍/班级榜项 key=组名、含成员数。"""
+    rank: int
+    key: str  # 用户名 / 宿舍名 / 班级名
+    user_id: int | None = None
+    username: str | None = None
+    class_name: str | None = None
+    dormitory: str | None = None
+    member_count: int | None = None
+    points: int
+    rank_change: int | None = None  # 较上期名次变化：正升负降，None=上期无积分（新上榜）
+
+
+class LeaderboardOut(BaseModel):
+    type: str
+    period: str
+    items: list[LeaderboardItemOut]
+    me: LeaderboardItemOut | None = None  # 当前登录学生的名次项（教师为 None）
+
+
+# ---------- 我的碳周报 ----------
+
+class WeekCardOut(BaseModel):
+    """本周周报卡片（实时计算）。"""
+    week_start: date  # 周一日期
+    carbon_kg: float
+    points: int
+    checkin_count: int
+    carbon_change: float  # 减碳量较上周增减（kg，负数=减少）
+    rank: int | None  # 本周全校减碳量排名
+    rank_change: int | None  # 较上周名次变化：正升负降
+    summary: str  # 个性化总结建议
+
+
+class WeeklyReportOut(BaseModel):
+    """历史周报条目（每周一自动生成的快照）。"""
+    week_start: date
+    carbon_kg: float
+    points: int
+    checkin_count: int
+    rank: int | None
+    rank_change: int | None
+    summary: str
+
+    model_config = {"from_attributes": True}

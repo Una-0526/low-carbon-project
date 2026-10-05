@@ -5,17 +5,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, SessionLocal, engine, ensure_sqlite_columns
-from app.routers import auth, carbon, carbon_accounting, checkin, diagnosis, mall, pathway
+from app.routers import (auth, carbon, carbon_accounting, checkin, diagnosis,
+                         leaderboard, mall, pathway, weekly_report)
 from app.routers.checkin import UPLOAD_DIR
 from app.services import auth_service
 from app.services import carbon as carbon_service
 from app.services import diagnosis as diagnosis_service
+from app.services import leaderboard as leaderboard_service
 from app.services import mall as mall_service
+from app.services import weekly_report as weekly_report_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时自动建表（SQLite），并创建演示账号 / 默认排放因子 / 默认方案库 / 默认商城商品（仅对应表为空时）
+    # 启动时自动建表（SQLite），并创建演示账号 / 默认排放因子 / 默认方案库 / 默认商城商品 / 模拟排行与周报数据（仅对应表为空时）
     Base.metadata.create_all(bind=engine)
     ensure_sqlite_columns()  # 旧库补齐新增列
     with SessionLocal() as db:
@@ -23,6 +26,9 @@ async def lifespan(app: FastAPI):
         carbon_service.ensure_default_factors(db)
         diagnosis_service.ensure_default_solutions(db)
         mall_service.ensure_default_reward_items(db)
+        leaderboard_service.ensure_demo_leaderboard_data(db)
+        leaderboard_service.ensure_demo_checkins(db)  # 模拟学生补打卡记录
+        weekly_report_service.ensure_weekly_reports(db)  # 补齐已完成周的周报快照
     yield
 
 
@@ -45,6 +51,8 @@ app.include_router(diagnosis.router)
 app.include_router(pathway.router)
 app.include_router(mall.router)
 app.include_router(mall.admin_router)
+app.include_router(leaderboard.router)
+app.include_router(weekly_report.router)
 
 # 打卡照片等静态文件
 UPLOAD_DIR.mkdir(exist_ok=True)

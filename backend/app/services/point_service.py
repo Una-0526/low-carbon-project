@@ -1,5 +1,7 @@
 """积分流水服务：所有积分变动统一走这里，保证留痕。"""
 
+from datetime import datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -13,14 +15,16 @@ def credit(
     reason: str,
     checkin_id: int | None = None,
     description: str | None = None,
+    created_at: datetime | None = None,
 ) -> PointTransaction:
-    """记一笔积分流水（不提交事务，由调用方统一 commit）。"""
+    """记一笔积分流水（不提交事务，由调用方统一 commit）。created_at 供种子数据回填历史流水。"""
     tx = PointTransaction(
         user_id=user_id,
         points=points,
         reason=reason,
         checkin_id=checkin_id,
         description=description,
+        created_at=created_at or datetime.now(),
     )
     db.add(tx)
     return tx

@@ -201,3 +201,18 @@ export function getAdminRedemptions(params) {
 export function fulfillRedemption(id) {
   return api.post(`/mall/admin/redemptions/${id}/fulfill`)
 }
+
+/** 碳积分排行榜（type: personal|dorm|class, period: month|year） */
+export function getLeaderboard(params) {
+  return api.get('/leaderboard', { params })
+}
+
+/** 本周碳周报卡片（实时计算） */
+export function getWeekCard() {
+  return api.get('/weekly-report/current')
+}
+
+/** 历史周报列表 */
+export function getWeekHistory() {
+  return api.get('/weekly-report/history')
+}

@@ -5,6 +5,7 @@ import StudentHome from '../views/student/StudentHome.vue'
 import StudentCheckin from '../views/student/StudentCheckin.vue'
 import StudentDiagnosis from '../views/student/StudentDiagnosis.vue'
 import StudentMall from '../views/student/StudentMall.vue'
+import Leaderboard from '../views/common/Leaderboard.vue'
 import TeacherDashboard from '../views/teacher/TeacherDashboard.vue'
 import TeacherCheckins from '../views/teacher/TeacherCheckins.vue'
 import CarbonAccounting from '../views/teacher/CarbonAccounting.vue'
@@ -47,6 +48,12 @@ const router = createRouter({
       meta: { role: 'student' },
     },
     {
+      path: '/student/leaderboard',
+      name: 'student-leaderboard',
+      component: Leaderboard,
+      meta: { role: 'student' },
+    },
+    {
       path: '/teacher/dashboard',
       name: 'teacher-dashboard',
       component: TeacherDashboard,
@@ -86,6 +93,12 @@ const router = createRouter({
       path: '/teacher/rewards',
       name: 'teacher-rewards',
       component: TeacherRewards,
+      meta: { role: 'teacher' },
+    },
+    {
+      path: '/teacher/leaderboard',
+      name: 'teacher-leaderboard',
+      component: Leaderboard,
       meta: { role: 'teacher' },
     },
     // 兼容旧路径
