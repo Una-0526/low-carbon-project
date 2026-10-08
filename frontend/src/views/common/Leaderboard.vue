@@ -1,5 +1,6 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import echarts from '../../utils/echarts'
 import { getLeaderboard } from '../../api'
 import { useAuth } from '../../stores/auth'
 
@@ -22,7 +23,9 @@ const PERIOD_OPTIONS = [
 
 const isPersonal = computed(() => type.value === 'personal')
 const periodLabel = computed(() => (period.value === 'month' ? '本月' : '本年'))
-const isStudent = computed(() => useAuth().user?.role === 'student')
+// 注意：useAuth() 返回普通对象，user 是原始 Ref，必须 .value 取值（模板外不会自动解包）
+const { user } = useAuth()
+const isStudent = computed(() => user.value?.role === 'student')
 
 const topItems = computed(() => board.value.items.slice(0, TOP_N))
 
@@ -44,6 +47,8 @@ async function fetchBoard() {
   try {
     const { data } = await getLeaderboard({ type: type.value, period: period.value })
     board.value = data
+    await nextTick()
+    renderBar() // 数据到位后必渲染一次，避免维度/周期切换时图表停留在旧数据
   } finally {
     loading.value = false
   }
@@ -73,6 +78,95 @@ function changeClass(row) {
   if (row.rank_change < 0) return 'down'
   return 'flat'
 }
+
+// ---------- Top10 积分对比柱状图 ----------
+const chartRef = ref(null)
+let chart = null
+
+const barTitle = computed(
+  () => `${TYPE_OPTIONS.find((t) => t.value === type.value).label}${periodLabel.value}积分对比 Top10`,
+)
+
+const barTip = computed(() => {
+  if (isPersonal.value) return '绿色柱子 = 我的积分'
+  return type.value === 'dorm' ? '绿色柱子 = 我所在的宿舍' : '绿色柱子 = 我所在的班级'
+})
+
+// 当前登录学生对应的柱子（个人榜=本人，宿舍/班级榜=所在组），教师无高亮
+const myKey = computed(() => {
+  if (!isStudent.value) return null
+  return isPersonal.value ? user.value?.username : type.value === 'dorm' ? user.value?.dormitory : user.value?.class_name
+})
+
+// 图表数据：Top10；我（或我所在组）不在前 10 时追加到末尾，保证绿色高亮柱始终可见
+const barItems = computed(() => {
+  const items = topItems.value.slice()
+  const me = board.value.me
+  if (me && !items.some((it) => it.rank === me.rank)) items.push(me)
+  return items
+})
+
+function renderBar() {
+  if (!chart) return
+  chart.resize() // 容器常驻渲染，先同步一次实际尺寸，避免按旧尺寸绘制
+  const items = barItems.value
+  if (!items.length) {
+    chart.clear()
+    return
+  }
+  const toName = (it) => (isPersonal.value ? it.username : it.key)
+  chart.setOption(
+    {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        formatter: (ps) => `${ps[0].name}<br/>${periodLabel.value}积分：<b>${ps[0].value}</b>`,
+      },
+      grid: { left: 8, right: 16, top: 30, bottom: 0, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: items.map(toName),
+        axisLabel: {
+          interval: 0,
+          rotate: 24,
+          fontSize: 11,
+          formatter: (n) => (n === myKey.value ? `${n}(我)` : n),
+        },
+      },
+      yAxis: { type: 'value', name: '积分' },
+      series: [
+        {
+          type: 'bar',
+          barMaxWidth: 40,
+          itemStyle: { borderRadius: [4, 4, 0, 0] },
+          data: items.map((it) => ({
+            value: it.points,
+            itemStyle: { color: toName(it) === myKey.value ? '#4caf50' : '#409eff' },
+          })),
+          label: { show: true, position: 'top', fontSize: 11, color: '#606266' },
+        },
+      ],
+    },
+    true, // notMerge：切换维度时类目数量不同（12人/4组），必须全量替换
+  )
+}
+
+function onResize() {
+  chart?.resize()
+}
+
+onMounted(async () => {
+  await nextTick()
+  chart = echarts.init(chartRef.value)
+  window.addEventListener('resize', onResize)
+  renderBar()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+  chart?.dispose()
+  chart = null
+})
 </script>
 
 <template>
@@ -90,6 +184,23 @@ function changeClass(row) {
             {{ p.label }}
           </el-radio-button>
         </el-radio-group>
+      </div>
+    </el-card>
+
+    <!-- Top10 积分对比柱状图 -->
+    <el-card class="mt">
+      <template #header>
+        <div class="chart-head">
+          <span>{{ barTitle }}</span>
+          <span class="chart-tip">{{ barTip }}</span>
+        </div>
+      </template>
+      <!-- 图表容器始终保持渲染（避免 0 尺寸 init），空数据时用浮层提示 -->
+      <div class="chart-wrap">
+        <div ref="chartRef" class="chart" />
+        <div v-if="!barItems.length" class="chart-empty">
+          <el-empty description="本期暂无积分数据" :image-size="80" />
+        </div>
       </div>
     </el-card>
 
@@ -167,6 +278,38 @@ function changeClass(row) {
 
 .mt {
   margin-top: 16px;
+}
+
+.chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chart-tip {
+  font-size: 12px;
+  color: #909399;
+  font-weight: normal;
+}
+
+.chart-wrap {
+  position: relative;
+}
+
+.chart {
+  width: 100%;
+  height: 360px;
+}
+
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
 }
 
 .no-me-tip {
